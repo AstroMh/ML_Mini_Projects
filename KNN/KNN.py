@@ -219,6 +219,5 @@ def main():
         filename=f"final_knn_k{final_k}.txt",
     )
 
-
 if __name__ == "__main__":
     main()
