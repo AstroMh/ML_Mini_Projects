@@ -85,7 +85,7 @@ def evaluate_knn(
     filename: str | None = None,
 ):
     """
-    Train and evaluate a KNN classifier for a given k.
+    Train and evaluate a knn_classification classifier for a given k.
     Saves the confusion matrix and classification report to a text file.
     """
     knn = KNeighborsClassifier(n_neighbors=n_neighbors)
@@ -132,7 +132,7 @@ def tune_k(
     results_dir: str = ".",
 ):
     """
-    Compute error rate for KNN over a range of k values and plot the result.
+    Compute error rate for knn_classification over a range of k values and plot the result.
     Saves the error plot into results_dir.
 
     Returns
@@ -161,7 +161,7 @@ def tune_k(
     )
     plt.xlabel("K")
     plt.ylabel("Error rate")
-    plt.title("KNN error rate vs K")
+    plt.title("knn_classification error rate vs K")
     plt.tight_layout()
 
     output_path = os.path.join(results_dir, "knn_error_vs_k.png")
@@ -192,7 +192,7 @@ def main():
         y_train,
         y_test,
         n_neighbors=5,
-        label="Baseline KNN model",
+        label="Baseline knn_classification model",
         results_dir=results_dir,
         filename="baseline_knn_k5.txt",
     )
@@ -214,7 +214,7 @@ def main():
         y_train,
         y_test,
         n_neighbors=final_k,
-        label="Final KNN model",
+        label="Final knn_classification model",
         results_dir=results_dir,
         filename=f"final_knn_k{final_k}.txt",
     )
