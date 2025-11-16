@@ -1,0 +1,5 @@
+California Housing – Linear Regression Evaluation
+MAE : 0.533200
+MSE : 0.555892
+RMSE: 0.745581
+R^2 : 0.575788
