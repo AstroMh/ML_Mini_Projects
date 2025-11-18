@@ -1,0 +1,17 @@
+Advertising – Logistic Regression Evaluation
+
+Accuracy: 0.976667
+
+Confusion matrix:
+[[148   2]
+ [  5 145]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+           0       0.97      0.99      0.98       150
+           1       0.99      0.97      0.98       150
+
+    accuracy                           0.98       300
+   macro avg       0.98      0.98      0.98       300
+weighted avg       0.98      0.98      0.98       300

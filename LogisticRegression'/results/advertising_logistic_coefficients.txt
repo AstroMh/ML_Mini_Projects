@@ -1,0 +1,7 @@
+Advertising – Logistic Regression Coefficients
+
+Age: 1.190997
+Male: -0.359160
+Area Income: -1.516700
+Daily Internet Usage: -2.324200
+Daily Time Spent on Site: -2.713450
