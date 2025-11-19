@@ -2,6 +2,9 @@ import os
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")  # use a non-interactive backend (no GUI needed)
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -15,10 +18,10 @@ from sklearn.metrics import (
     auc,
 )
 
-
 # -------------------------------------------------------------------
 # Paths & data loading
 # -------------------------------------------------------------------
+
 
 def get_project_paths(
     data_filename: str = "loan_data.csv",
@@ -49,6 +52,7 @@ def load_data(data_path: str) -> pd.DataFrame:
 # Exploratory analysis & preprocessing
 # -------------------------------------------------------------------
 
+
 def explore_data(df: pd.DataFrame, results_dir: str) -> None:
     """
     Basic exploratory visualization.
@@ -56,6 +60,9 @@ def explore_data(df: pd.DataFrame, results_dir: str) -> None:
     Saves:
       - pairplot of selected numeric features + target
       - correlation heatmap of numeric columns
+
+    Wrapped in try/except so plotting issues (e.g. seaborn/pandas version)
+    don't crash the whole script.
     """
     # Columns we care about for quick visual analysis
     cols_for_pairplot = [
@@ -68,36 +75,47 @@ def explore_data(df: pd.DataFrame, results_dir: str) -> None:
         "not.fully.paid",
     ]
     available_cols = [c for c in cols_for_pairplot if c in df.columns]
-    subset = df[available_cols].dropna()
 
-    if "not.fully.paid" in subset.columns:
-        pairplot_path = os.path.join(results_dir, "loan_pairplot.png")
-        sns.pairplot(subset, hue="not.fully.paid")
-        plt.tight_layout()
-        plt.savefig(pairplot_path, dpi=300, bbox_inches="tight")
-        plt.close()
-        print(f"[INFO] Pairplot saved to {pairplot_path}")
+    # ---- Pairplot ----
+    try:
+        if "not.fully.paid" in available_cols:
+            subset = df[available_cols].dropna()
+            pairplot_path = os.path.join(results_dir, "loan_pairplot.png")
+            sns.pairplot(subset, hue="not.fully.paid")
+            plt.tight_layout()
+            plt.savefig(pairplot_path, dpi=300, bbox_inches="tight")
+            plt.close()
+            print(f"[INFO] Pairplot saved to {pairplot_path}")
+        else:
+            print("[WARN] 'not.fully.paid' not in columns for pairplot; skipping.")
+    except Exception as e:
+        print(f"[WARN] Failed to create pairplot: {e}")
 
-    # Correlation heatmap for numeric columns (including target if present)
-    numeric_df = df.select_dtypes(include=["number"]).dropna()
-    corr = numeric_df.corr()
-
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(corr, cmap="coolwarm", center=0)
-    plt.title("LendingClub – Correlation Heatmap")
-    plt.tight_layout()
-    heatmap_path = os.path.join(results_dir, "loan_corr_heatmap.png")
-    plt.savefig(heatmap_path, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"[INFO] Correlation heatmap saved to {heatmap_path}")
+    # ---- Correlation heatmap ----
+    try:
+        numeric_df = df.select_dtypes(include=["number"]).dropna()
+        if numeric_df.shape[1] > 1:
+            corr = numeric_df.corr()
+            plt.figure(figsize=(10, 8))
+            sns.heatmap(corr, cmap="coolwarm", center=0)
+            plt.title("LendingClub – Correlation Heatmap")
+            plt.tight_layout()
+            heatmap_path = os.path.join(results_dir, "loan_corr_heatmap.png")
+            plt.savefig(heatmap_path, dpi=300, bbox_inches="tight")
+            plt.close()
+            print(f"[INFO] Correlation heatmap saved to {heatmap_path}")
+        else:
+            print("[WARN] Not enough numeric columns for heatmap; skipping.")
+    except Exception as e:
+        print(f"[WARN] Failed to create correlation heatmap: {e}")
 
 
 def preprocess_data(df: pd.DataFrame):
     """
     Preprocess the LendingClub dataset.
 
-    - One-hot encode the 'purpose' categorical column.
-    - Keep all other numeric columns as-is.
+    - One-hot encode the 'purpose' categorical column (if present).
+    - Keep all other columns except the target.
     - Define target as 'not.fully.paid' (1 = did NOT pay back in full, 0 = paid).
 
     Returns
@@ -123,11 +141,15 @@ def preprocess_data(df: pd.DataFrame):
     X = df.drop("not.fully.paid", axis=1)
     y = df["not.fully.paid"].astype(int)
 
-    # Drop any remaining rows with NaNs in features
+    # Drop any remaining rows with NaNs in features and align y
     X = X.dropna()
     y = y.loc[X.index]
 
     feature_names = X.columns.tolist()
+
+    if X.shape[0] == 0 or X.shape[1] == 0:
+        raise RuntimeError("After preprocessing, X is empty. Check your data and preprocessing steps.")
+
     return X, y, feature_names
 
 
@@ -153,6 +175,7 @@ def train_test_split_data(
 # -------------------------------------------------------------------
 # Modeling & evaluation
 # -------------------------------------------------------------------
+
 
 def train_random_forest(
     X_train,
@@ -244,11 +267,10 @@ def plot_roc_curve(
     """
     Plot ROC curve and save it as PNG. Also returns FPR, TPR, AUC.
     """
-    if hasattr(model, "predict_proba"):
-        y_prob = model.predict_proba(X_test)[:, 1]
-    else:
-        raise ValueError("Model does not support predict_proba; cannot compute ROC curve.")
+    if not hasattr(model, "predict_proba"):
+        raise RuntimeError("Model does not support predict_proba; cannot compute ROC curve.")
 
+    y_prob = model.predict_proba(X_test)[:, 1]
     fpr, tpr, thresholds = roc_curve(y_test, y_prob)
     roc_auc = auc(fpr, tpr)
 
@@ -281,7 +303,12 @@ def plot_feature_importances(
     importances = model.feature_importances_
     series = pd.Series(importances, index=feature_names).sort_values()
 
-    plt.figure(figsize=(8, max(6, len(series) * 0.25)))
+    if len(series) == 0:
+        print("[WARN] No feature importances to plot.")
+        return
+
+    height = max(4, len(series) * 0.25)
+    plt.figure(figsize=(8, height))
     series.plot(kind="barh")
     plt.xlabel("Feature importance")
     plt.title("Random Forest Feature Importances – LendingClub")
@@ -324,6 +351,7 @@ def save_feature_importances_table(
 # Main script
 # -------------------------------------------------------------------
 
+
 def main():
     # Resolve paths
     data_path, results_dir = get_project_paths(
@@ -334,7 +362,7 @@ def main():
     # 1. Load data
     df = load_data(data_path)
 
-    # 2. Exploratory analysis
+    # 2. Exploratory analysis (non-critical)
     explore_data(df, results_dir=results_dir)
 
     # 3. Preprocess: encode 'purpose', set target
@@ -346,7 +374,12 @@ def main():
     )
 
     # 5. Train Random Forest
-    rf_model = train_random_forest(X_train, y_train, n_estimators=600, max_depth=None)
+    rf_model = train_random_forest(
+        X_train,
+        y_train,
+        n_estimators=600,
+        max_depth=None,
+    )
 
     # 6. Evaluate model
     y_pred, metrics = evaluate_classifier(
@@ -359,7 +392,7 @@ def main():
     )
 
     # 7. ROC curve
-    fpr, tpr, roc_auc = plot_roc_curve(
+    plot_roc_curve(
         rf_model,
         X_test,
         y_test,

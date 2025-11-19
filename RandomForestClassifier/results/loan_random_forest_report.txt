@@ -1,0 +1,17 @@
+LendingClub – Random Forest Evaluation
+
+Accuracy: 0.836813
+
+Confusion matrix:
+[[2400   14]
+ [ 455    5]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+           0       0.84      0.99      0.91      2414
+           1       0.26      0.01      0.02       460
+
+    accuracy                           0.84      2874
+   macro avg       0.55      0.50      0.47      2874
+weighted avg       0.75      0.84      0.77      2874

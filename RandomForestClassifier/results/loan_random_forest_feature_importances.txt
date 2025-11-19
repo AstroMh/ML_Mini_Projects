@@ -1,0 +1,20 @@
+LendingClub – Random Forest Feature Importances
+
+installment: 0.114742
+revol.util: 0.111874
+revol.bal: 0.111711
+days.with.cr.line: 0.111336
+log.annual.inc: 0.111308
+dti: 0.108791
+int.rate: 0.106857
+fico: 0.077590
+inq.last.6mths: 0.055987
+credit.policy: 0.015209
+delinq.2yrs: 0.014710
+purpose_debt_consolidation: 0.014534
+purpose_small_business: 0.009974
+pub.rec: 0.009512
+purpose_credit_card: 0.008382
+purpose_home_improvement: 0.007704
+purpose_educational: 0.005902
+purpose_major_purchase: 0.003877
