@@ -18,21 +18,10 @@ from sklearn.metrics import (
     auc,
 )
 
-# -------------------------------------------------------------------
-# Paths & data loading
-# -------------------------------------------------------------------
-
-
 def get_project_paths(
     data_filename: str = "loan_data.csv",
     results_dir_name: str = "results",
 ):
-    """
-    Resolve paths based on the location of this script.
-
-    Assumes the dataset is a CSV file (default: 'loan_data.csv')
-    stored in the same directory as this script.
-    """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, data_filename)
     results_dir = os.path.join(base_dir, results_dir_name)
@@ -41,17 +30,8 @@ def get_project_paths(
 
 
 def load_data(data_path: str) -> pd.DataFrame:
-    """
-    Load the LendingClub loan dataset from CSV.
-    """
     df = pd.read_csv(data_path)
     return df
-
-
-# -------------------------------------------------------------------
-# Exploratory analysis & preprocessing
-# -------------------------------------------------------------------
-
 
 def explore_data(df: pd.DataFrame, results_dir: str) -> None:
     """
@@ -64,7 +44,6 @@ def explore_data(df: pd.DataFrame, results_dir: str) -> None:
     Wrapped in try/except so plotting issues (e.g. seaborn/pandas version)
     don't crash the whole script.
     """
-    # Columns we care about for quick visual analysis
     cols_for_pairplot = [
         "fico",
         "int.rate",
@@ -97,7 +76,7 @@ def explore_data(df: pd.DataFrame, results_dir: str) -> None:
         if numeric_df.shape[1] > 1:
             corr = numeric_df.corr()
             plt.figure(figsize=(10, 8))
-            sns.heatmap(corr, cmap="coolwarm", center=0)
+            sns.heatmap(corr, cmap="coolwarm", center=0, annot=True)
             plt.title("LendingClub – Correlation Heatmap")
             plt.tight_layout()
             heatmap_path = os.path.join(results_dir, "loan_corr_heatmap.png")
@@ -130,18 +109,14 @@ def preprocess_data(df: pd.DataFrame):
     if "not.fully.paid" not in df.columns:
         raise ValueError("Expected target column 'not.fully.paid' not found in DataFrame.")
 
-    # One-hot encode 'purpose' if present
     if "purpose" in df.columns:
         df = pd.get_dummies(df, columns=["purpose"], drop_first=True)
 
-    # Drop rows with missing target
     df = df.dropna(subset=["not.fully.paid"])
 
-    # Features = all columns except target
     X = df.drop("not.fully.paid", axis=1)
     y = df["not.fully.paid"].astype(int)
 
-    # Drop any remaining rows with NaNs in features and align y
     X = X.dropna()
     y = y.loc[X.index]
 
@@ -159,9 +134,7 @@ def train_test_split_data(
     test_size: float = 0.3,
     random_state: int = 42,
 ):
-    """
-    Split features and target into train and test sets with stratification.
-    """
+
     return train_test_split(
         X,
         y,
@@ -172,11 +145,6 @@ def train_test_split_data(
     )
 
 
-# -------------------------------------------------------------------
-# Modeling & evaluation
-# -------------------------------------------------------------------
-
-
 def train_random_forest(
     X_train,
     y_train,
@@ -184,9 +152,7 @@ def train_random_forest(
     max_depth=None,
     random_state: int = 42,
 ):
-    """
-    Fit a Random Forest classifier.
-    """
+
     rf = RandomForestClassifier(
         n_estimators=n_estimators,
         max_depth=max_depth,
@@ -205,20 +171,13 @@ def evaluate_classifier(
     report_filename: str = "loan_random_forest_report.txt",
     cm_filename: str = "loan_random_forest_confusion_matrix.png",
 ):
-    """
-    Evaluate a classification model and save metrics + confusion matrix.
 
-    Saves:
-      - Text report (accuracy + classification report + confusion matrix)
-      - Confusion matrix heatmap as PNG
-    """
     y_pred = model.predict(X_test)
 
     acc = accuracy_score(y_test, y_pred)
     cm = confusion_matrix(y_test, y_pred)
     cr = classification_report(y_test, y_pred)
 
-    # Print to console
     print("\n=== LendingClub – Random Forest Evaluation ===")
     print(f"Accuracy: {acc:.4f}")
     print("Confusion matrix:")
@@ -226,7 +185,6 @@ def evaluate_classifier(
     print("\nClassification report:")
     print(cr)
 
-    # Save text report
     report_path = os.path.join(results_dir, report_filename)
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("LendingClub – Random Forest Evaluation\n\n")
@@ -238,7 +196,6 @@ def evaluate_classifier(
 
     print(f"[INFO] Evaluation report saved to {report_path}")
 
-    # Save confusion matrix heatmap
     cm_path = os.path.join(results_dir, cm_filename)
     plt.figure(figsize=(6, 5))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
@@ -264,9 +221,7 @@ def plot_roc_curve(
     results_dir: str,
     filename: str = "loan_random_forest_roc_curve.png",
 ):
-    """
-    Plot ROC curve and save it as PNG. Also returns FPR, TPR, AUC.
-    """
+
     if not hasattr(model, "predict_proba"):
         raise RuntimeError("Model does not support predict_proba; cannot compute ROC curve.")
 
@@ -297,9 +252,7 @@ def plot_feature_importances(
     results_dir: str,
     filename: str = "loan_random_forest_feature_importances.png",
 ):
-    """
-    Plot feature importances as a horizontal bar chart and save to PNG.
-    """
+
     importances = model.feature_importances_
     series = pd.Series(importances, index=feature_names).sort_values()
 
@@ -327,9 +280,7 @@ def save_feature_importances_table(
     filename_csv: str = "loan_random_forest_feature_importances.csv",
     filename_txt: str = "loan_random_forest_feature_importances.txt",
 ):
-    """
-    Save feature importances to CSV and TXT files.
-    """
+
     importances = model.feature_importances_
     fi_df = pd.DataFrame(
         {"feature": feature_names, "importance": importances}
@@ -346,12 +297,6 @@ def save_feature_importances_table(
 
     print(f"[INFO] Feature importances saved to {csv_path} and {txt_path}")
 
-
-# -------------------------------------------------------------------
-# Main script
-# -------------------------------------------------------------------
-
-
 def main():
     # Resolve paths
     data_path, results_dir = get_project_paths(
@@ -359,21 +304,14 @@ def main():
         results_dir_name="results",
     )
 
-    # 1. Load data
     df = load_data(data_path)
 
-    # 2. Exploratory analysis (non-critical)
     explore_data(df, results_dir=results_dir)
-
-    # 3. Preprocess: encode 'purpose', set target
     X, y, feature_names = preprocess_data(df)
-
-    # 4. Train/test split
     X_train, X_test, y_train, y_test = train_test_split_data(
         X, y, test_size=0.3, random_state=42
     )
 
-    # 5. Train Random Forest
     rf_model = train_random_forest(
         X_train,
         y_train,
@@ -381,7 +319,6 @@ def main():
         max_depth=None,
     )
 
-    # 6. Evaluate model
     y_pred, metrics = evaluate_classifier(
         rf_model,
         X_test,
@@ -391,7 +328,6 @@ def main():
         cm_filename="loan_random_forest_confusion_matrix.png",
     )
 
-    # 7. ROC curve
     plot_roc_curve(
         rf_model,
         X_test,
@@ -400,7 +336,6 @@ def main():
         filename="loan_random_forest_roc_curve.png",
     )
 
-    # 8. Feature importances (plots + tables)
     plot_feature_importances(
         rf_model,
         feature_names,
