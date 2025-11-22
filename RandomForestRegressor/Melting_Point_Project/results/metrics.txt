@@ -1,0 +1,8 @@
+PolyML Task 1 – Melting Point Prediction
+
+Validation metrics (on hold-out split):
+Baseline MAE (predict mean): 77.385127
+RandomForest val MAE:        24.882461
+RandomForest CV MAE (mean): 26.343725 ± 0.092559
+Gradient boosting val MAE:   24.667282
+Ensemble (RF+GB) val MAE:    24.385326
