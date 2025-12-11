@@ -69,22 +69,6 @@ colsample_bytree = 0.8
 tree_method = hist  
 objective = binary:logistic  
 
-This configuration provides strong generalization performance with controlled complexity.
-
----
-
-## How to Run  
-
-Install dependencies:  
-```bash
-pip install -r requirements.txt  
-```
-Execute the script:  
-```bash
-python xgboost_main.py  
-```
-All artifacts will be saved into the results directory next to the script.
-
 ---
 
 ## Evaluation Metrics  
