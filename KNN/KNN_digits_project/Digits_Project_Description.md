@@ -66,7 +66,7 @@ After running the script, you’ll get:
 - `digits_confusion_matrix_k5.png`  
   Confusion matrix heatmap for the **baseline** KNN model (k = 5).
 
-  ![Confusion Matrix X Heatmap](results/digits_confusion_matrix-k5.png)
+  ![Confusion Matrix X Heatmap](results/digits_confusion_matrix_k5.png)
 
 
 **Text reports**
