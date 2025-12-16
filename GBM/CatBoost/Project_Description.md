@@ -1,5 +1,4 @@
 # CatBoost Classification Mini-Project  
-Machine Learning Mini-Projects Repository
 
 ## Overview
 This mini-project demonstrates the use of **CatBoost**, a gradient boosting algorithm specifically designed to handle categorical features efficiently, on a real-world structured dataset.  
