@@ -58,17 +58,16 @@ After running the script, you’ll get:
 - `digits_sample_grid.png`  
   Grid of example handwritten digit images with their true labels.
 
+  ![Sample Predictions](results/digits_sample_predictions_k5.png)
+
 - `digits_error_vs_k.png`  
   Error rate as a function of K (helps visualize the best K).
 
 - `digits_confusion_matrix_k5.png`  
   Confusion matrix heatmap for the **baseline** KNN model (k = 5).
 
-- `digits_confusion_matrix_k<best_k>.png`  
-  Confusion matrix heatmap for the **final** KNN model using the best K.
+  ![Confusion Matrix X Heatmap](results/digits_confusion_matrix_k5.png)
 
-- `digits_sample_predictions_k<best_k>.png`  
-  Grid of test images with **predicted vs true** labels; misclassifications highlighted.
 
 **Text reports**
 
